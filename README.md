@@ -1,59 +1,62 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Vendorum – Vendor Management AI Platform
+
+## Overview
+Vendorum is a lightweight web platform that helps small and mid-sized businesses streamline vendor selection and monitoring.  
+It lets a buyer upload a product catalog, receive vendor recommendations backed by evidence, create draft purchase orders, and track vendor health through alerts and scorecards.
+
+This project was built to demonstrate **product thinking, full-stack engineering, and practical use of machine learning**.
+
+---
+
+## Key Features
+- **CSV Import** – Upload product catalogs directly into the platform.
+- **Vendor Recommendations** – Transparent scoring model combines price, lead time, quality, and category match.
+- **Draft Orders** – Generate and track purchase orders from recommended vendors.
+- **Health Alerts** – Background jobs surface anomalies like late shipments or stock issues.
+- **Scorecards** – Vendors get clear, data-driven profiles for decision making.
+
+---
+
+## Architecture
+- **Frontend**: Next.js 14 (App Router), TypeScript, TailwindCSS  
+- **Backend**: Node.js API routes, Prisma ORM, PostgreSQL  
+- **Jobs**: Redis + BullMQ queue for health monitoring  
+- **Machine Learning**: Gradient Boosted Trees exported to ONNX and served in Node via `onnxruntime`. Blends with rules-based scoring for explainability.  
+- **Deployment Ready**: Dockerized and structured for Cloud Run + Cloud SQL.
+
+---
+
+## How It Works
+1. **Import** – A buyer uploads a CSV of products.  
+2. **Match** – Vendors are scored using both rule-based features and a trained ML model.  
+3. **Order** – A draft purchase order is created with quantity, ETA, and vendor details.  
+4. **Monitor** – A background worker flags anomalies and updates vendor scorecards in near-real time.
+
+---
+
+## Why It Matters
+Vendor selection is usually manual, spread across emails and spreadsheets, and prone to delays. Vendorum reduces this friction:
+- Cuts time-to-first-match from hours to under a minute.  
+- Surfaces risks early with anomaly detection.  
+- Keeps decision making transparent while layering in ML for improved accuracy.  
+
+---
 
 ## Getting Started
-
-First, run the development server:
-
 ```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
-```
+# Install dependencies
+npm install
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+# Start Postgres & Redis
+docker compose up -d
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+# Run migrations and seed data
+npx prisma migrate dev
+npm run seed
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
-
-## Learn More
-
-To learn more about Next.js, take a look at the following resources:
-
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
-
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
-
-## Deploy on Vercel
-
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
-
-## Training the ML model
-
-1. Create and activate a Python virtual environment:
-
-```bash
-python3 -m venv .venv
-source .venv/bin/activate
-```
-
-2. Install Python dependencies:
-
-```bash
-pip install -r ml/requirements.txt
-```
-
-3. Train and export ONNX model:
-
-```bash
+# Train the ML model
 npm run train
-```
 
-This will write `ml/model.onnx` and `ml/feature_names.json`. At runtime, the API will automatically load the model (if present) and blend it with the rules-based score: 70% ML, 30% rules. Use `/api/ml/status` to verify model presence and feature names.
+# Run the app
+npm run dev
+npm run worker   # in a separate terminal
