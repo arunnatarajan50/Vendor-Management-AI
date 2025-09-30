@@ -1,0 +1,102 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model Org {
+  id        String   @id @default(cuid())
+  name      String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  users     User[]
+  vendors   Vendor[]
+  products  Product[]
+  orders    Order[]
+  matches   Match[]
+  healthEvents HealthEvent[]
+}
+
+model User {
+  id        String   @id @default(cuid())
+  orgId     String
+  email     String   @unique
+  name      String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  org       Org      @relation(fields: [orgId], references: [id])
+}
+
+model Product {
+  id          String   @id @default(cuid())
+  orgId       String
+  sku         String
+  name        String
+  category    String
+  specs       Json      // product specs in JSON
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+  org         Org       @relation(fields: [orgId], references: [id])
+  matches     Match[]
+  orders      Order[]
+}
+
+model Vendor {
+  id           String   @id @default(cuid())
+  orgId        String
+  name         String
+  categories   String[]
+  priceIndex   Float     // lower is cheaper vs. market baseline 1.0
+  qualityScore Float     // 0-1
+  avgLeadDays  Int
+  createdAt    DateTime  @default(now())
+  updatedAt    DateTime  @updatedAt
+  org          Org       @relation(fields: [orgId], references: [id])
+  matches      Match[]
+  healthEvents HealthEvent[]
+  orders       Order[]
+}
+
+model Match {
+  id            String   @id @default(cuid())
+  orgId         String
+  productId     String
+  vendorId      String
+  score         Float
+  evidence      Json
+  createdAt     DateTime @default(now())
+  product       Product  @relation(fields: [productId], references: [id])
+  vendor        Vendor   @relation(fields: [vendorId], references: [id])
+  org           Org      @relation(fields: [orgId], references: [id])
+}
+
+model Order {
+  id         String   @id @default(cuid())
+  orgId      String
+  productId  String
+  vendorId   String
+  quantity   Int
+  status     String   @default("DRAFT")
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+  org        Org      @relation(fields: [orgId], references: [id])
+  product    Product  @relation(fields: [productId], references: [id])
+  vendor     Vendor   @relation(fields: [vendorId], references: [id])
+}
+
+model HealthEvent {
+  id        String   @id @default(cuid())
+  orgId     String
+  vendorId  String
+  type      String
+  severity  String
+  details   Json
+  createdAt DateTime @default(now())
+  vendor    Vendor   @relation(fields: [vendorId], references: [id])
+  org       Org      @relation(fields: [orgId], references: [id])
+}
+
+

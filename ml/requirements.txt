@@ -1,0 +1,6 @@
+pandas
+scikit-learn
+skl2onnx
+numpy
+psycopg2-binary
+
